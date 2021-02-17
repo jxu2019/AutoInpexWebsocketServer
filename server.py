@@ -94,8 +94,8 @@ def upload_file(file_to_upload, publicID, folderName):
         return thumbnail_url1;
 
 # Called when a client sends a message
-camera = PiCamera();
-output = StreamingOutput();
+camera = PiCamera()
+output = StreamingOutput()
 def message_received(client, server, message):
     try:
         print(message);
@@ -212,23 +212,13 @@ def startStreaming():
     finally:
         camera.stop_recording();
         
-tStreaming = threading.Thread(target=startStreaming);
-
-hostname = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(10));
-writeLog("hostname: "+hostname);
-
-if hostname =="raspberrypi":
-    writeLog('reset hostname to:'+hostname);
-    setHostname(hostname);
-    
-writeLog('starting websocket sever at port 5001...');
-
-
+statusData="";
 def SendPIStatus():
     websocket.enableTrace(False)
-    data = readJsonData();
+    if statusData=="":
+        statusData = readJsonData();
     ws = websocket.create_connection("ws://echo.websocket.org/")
-    ws.send(data);
+    ws.send(statusData);
     #result =  ws.recv();
     #print("Received '%s'" % result);
     ws.close();
@@ -248,19 +238,27 @@ class perpetualTimer():
    def cancel(self):
       self.thread.cancel()
 
-tSendStatus = perpetualTimer(60*2,SendPIStatus)
+if __name__ == "__main__":
+    
+    tStreaming = threading.Thread(target=startStreaming);
+    hostname = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(10));
+    writeLog("hostname: "+hostname);
 
-
-
-PORT:int = 5001;
-server = WebsocketServer(PORT);
-server.set_fn_new_client(new_client);
-server.set_fn_client_left(client_left);
-server.set_fn_message_received(message_received);
-writeLog("The server is started.");
-tStreaming.start();
-tSendStatus.start();
-server.run_forever();
+    if hostname =="raspberrypi":
+        writeLog('reset hostname to:'+hostname);
+        setHostname(hostname);
+    writeLog('starting websocket sever at port 5001...');
+   
+    tSendStatus = perpetualTimer(60*2,SendPIStatus);
+    PORT:int = 5001;
+    server = WebsocketServer(PORT);
+    server.set_fn_new_client(new_client);
+    server.set_fn_client_left(client_left);
+    server.set_fn_message_received(message_received);
+    writeLog("The server is started.");
+    tStreaming.start();
+    tSendStatus.start();
+    server.run_forever();
 
 
 
