@@ -215,6 +215,7 @@ def startStreaming():
 statusData="";
 def SendPIStatus():
     websocket.enableTrace(False)
+    global statusData;
     if statusData=="":
         statusData = readJsonData();
     ws = websocket.create_connection("ws://echo.websocket.org/")
@@ -239,7 +240,7 @@ class perpetualTimer():
       self.thread.cancel()
 
 if __name__ == "__main__":
-    
+
     tStreaming = threading.Thread(target=startStreaming);
     hostname = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(10));
     writeLog("hostname: "+hostname);
