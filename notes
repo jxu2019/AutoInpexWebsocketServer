@@ -1,0 +1,41 @@
+
+sudo raspi-config
+
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo npm install pm2 -g
+sudo npm install pm2@latest -g
+pm2 update
+
+sudo pip3 install cloudinary
+sudo apt get install xscreensaver
+
+sudo apt-get update
+sudo apt install --reinstall libraspberrypi0 libraspberrypi-{bin,dev,doc} raspberrypi-bootloader raspberrypi-kernel
+
+sudo pm2 start /home/pi/Desktop/AutoInpexWebsocketServer/server.py --interpreter python3 -f 
+
+sudo pm2 startup
+
+sudo env PATH=$PATH:/usr/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
+
+sudo pm2 save
+
+sudo pm2 stop all
+
+sudo pm2 delete all
+
+http://192.168.0.10:8000/ 
+https://defgw.wordpress.com/2017/10/24/watchdog-reboot-raspberry-pi-if-network-is-down/
+
+
+How to prevent screen blank
+
+sudo apt-get install xscreensaver
+Once installed, go to Rpi's desktop "Menu" (left top corner)
+Go to preference --> screensaver.
+You will see a screen saver main menu. In the mode drop-down menu, select "disable screensaver" then close the window.
+Reboot the Raspberry PI.
+
+sudo apt-get clean && sudo apt-get autoremove --purge
