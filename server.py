@@ -84,8 +84,8 @@ def readJsonData():
                 AutoInspexID = lineArray[1]
             elif(lineArray[0] == "CameraPosition"):
                 CameraPosition = lineArray[1]
-        retData = {"HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
-                   "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PIOSVersion": platform.platform(), "PIVersion": "PI 4", "OS_ID": "1"}
+        retData = {"Status": "Active","HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
+                   "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PiOSVersion": platform.platform(), "PiVersion": "PI 4", "OS_ID": "1"}
         print(retData)
         retJson = json.dumps(retData)
         writeLog(retJson)
@@ -256,7 +256,8 @@ def startStreaming():
         httpserver = StreamingServer(address, StreamingHandler)
         httpserver.serve_forever()
     except Exception as e:
-        os.system("sudo pm2 restart all")
+        os.system("sudo pm2 delete all")
+        os.system("sudo pm2 start /home/pi/AutoInpexWebsocketServer/server.py --interpreter python3 -f ")
         print(str(e))
         writeLog(str(e))
     finally:
@@ -272,7 +273,7 @@ def SendPIStatus():
         global statusData
         if statusData == "":
             statusData = readJsonData()
-        ws = websocket.create_connection("ws://192.168.0.11")
+        ws = websocket.create_connection("ws://192.168.0.11:6001")
         ws.send(statusData)
         ws.close()
         os.system("sudo free -h && sudo sysctl -w vm.drop_caches=3 && sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -h")
