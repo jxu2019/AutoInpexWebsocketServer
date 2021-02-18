@@ -12,7 +12,9 @@ from cloudinary.uploader import upload;
 from cloudinary.utils import cloudinary_url;
 import json;
 import websocket
-from threading import Timer,Thread,Event
+from threading import Timer, Thread, Event
+import uuid;
+
 
 def writeLog(message):
     file = open("/home/pi/log.log", "a");
@@ -21,19 +23,27 @@ def writeLog(message):
     file.flush();
     file.close();
 
+
 def setHostname(newhostname):
-    with open('/etc/hosts', 'r') as file:
-        data = file.readlines()
-    data[5] = '127.0.1.1       ' + newhostname
-    with open('temp.txt', 'w') as file:
-        file.writelines(data)
-    os.system('sudo mv temp.txt /etc/hosts')
-    with open('/etc/hostname', 'r') as file:
-        data = file.readlines()
-    data[0] = newhostname
-    with open('temp.txt', 'w') as file:
-        file.writelines(data)
-    os.system('sudo mv temp.txt /etc/hostname')
+    try:
+        with open('/etc/hosts', 'r') as file:
+            data = file.readlines();
+        data[5] = '127.0.1.1       ' + newhostname;
+        with open('temp.txt', 'w') as file:
+            file.writelines(data);
+         os.system('sudo mv temp.txt /etc/hosts')
+        with open('/etc/hostname', 'r') as file:
+            data = file.readlines();
+         data[0] = newhostname;
+        with open('temp.txt', 'w') as file:
+            file.writelines(data);
+         os.system('sudo mv temp.txt /etc/hostname');
+     except Exception as e:
+         print(str(e))
+         writeLog(str(e));
+         return "";
+
+
 
 def get_ip_address():
      ip_address = '';
@@ -43,59 +53,76 @@ def get_ip_address():
      s.close()
      return ip_address;
 
+
 def readData():
     file = open("/home/pi/AutoInspex_Config.txt", "r");
     data = file.read();
     file.close();
     uname = platform.uname();
     data = data + "IP:" + get_ip_address() + "\n";
-    data = data + "hostname:" + socket.gethostname()+ "\n";
+    data = data + "hostname:" + socket.gethostname() + "\n";
     data = data + ":" + platform.platform() + "\n";
     return data;
 
+
 def readJsonData():
-    file = open("/home/pi/AutoInspex_Config.txt", "r");
-    configdata = file.read();
-    file.close();
-    arrayObj = configdata.split("\n");
-    for line in arrayObj:
-        lineArray=line.split(":");
-        if(lineArray[0]=="HousingID"):
-            HousingID=lineArray[1];
-        elif(lineArray[0]=="SerialNumber"):
-            SerialNumber=lineArray[1];
-        elif(lineArray[0]=="LensID"):
-            LensID=lineArray[1];
-        elif(lineArray[0]=="SensorID"):
-            SensorID=lineArray[1];
-        elif(lineArray[0]=="AutoInspexID"):
-            AutoInspexID=lineArray[1];
-        elif(lineArray[0]=="CameraPosition"):
-            CameraPosition=lineArray[1];
-    retData ={"HousingID": HousingID,"SerialNumber": SerialNumber,"LensID": LensID,"SensorID": SensorID, "RingPostion":CameraPosition+"", "AutoInspexID":AutoInspexID, "IPAddress":get_ip_address(),"PIOSVersion":platform.platform(),"PIVersion":"PI 4","OS_ID":"1"};
-    print(retData);
-    retJson= json.dumps(retData);
-    writeLog(retJson);
-    return retJson;
+    try:
+        file = open("/home/pi/AutoInspex_Config.txt", "r");
+        configdata = file.read();
+        file.close();
+        arrayObj = configdata.split("\n");
+        for line in arrayObj:
+            lineArray = line.split(":");
+            if(lineArray[0] == "HousingID"):
+                HousingID = lineArray[1];
+            elif(lineArray[0] == "SerialNumber"):
+                SerialNumber = lineArray[1];
+            elif(lineArray[0] == "LensID"):
+                 LensID = lineArray[1];
+            elif(lineArray[0] == "SensorID"):
+                SensorID = lineArray[1];
+            elif(lineArray[0] == "AutoInspexID"):
+                AutoInspexID = lineArray[1];
+            elif(lineArray[0] == "CameraPosition"):
+                CameraPosition = lineArray[1];
+        retData = {"HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPostion": CameraPosition +
+            "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PIOSVersion": platform.platform(), "PIVersion": "PI 4", "OS_ID": "1"};
+        print(retData);
+        retJson = json.dumps(retData);
+        writeLog(retJson);
+        return retJson;
+    except Exception as e:
+        print(str(e))
+        writeLog(str(e));
+        return "";
+
 
 def new_client(client, server):
     writeLog("New client connected and was given id %d" % client['id']);
-   
+
 # Called for every client disconnecting
+
+
 def client_left(client, server):
     writeLog("Client(%d) disconnected" % client['id'])
 
 
 def upload_file(file_to_upload, publicID, folderName):
-    cloudinary.config(cloud_name="carpixstaging", api_key="562496914617253", api_secret="lvqpgDrvwO9OSiTwrjvhr8ozOI4");
+    cloudinary.config(cloud_name="carpixstaging", api_key="562496914617253",
+                      api_secret="lvqpgDrvwO9OSiTwrjvhr8ozOI4");
     if file_to_upload:
-        upload_result = upload(file_to_upload,folder = folderName , public_id = publicID.replace(".jpg",""),unique_filename=True, overwrite=True);
-        thumbnail_url1, options = cloudinary_url(upload_result['public_id'], format="jpg");
+        upload_result = upload(file_to_upload, folder=folderName, public_id=publicID.replace(
+            ".jpg", ""), unique_filename=True, overwrite=True);
+        thumbnail_url1, options = cloudinary_url(
+            upload_result['public_id'], format="jpg");
         return thumbnail_url1;
+
 
 # Called when a client sends a message
 camera = PiCamera()
 output = StreamingOutput()
+
+
 def message_received(client, server, message):
     try:
         print(message);
@@ -106,29 +133,34 @@ def message_received(client, server, message):
         file.close();
         arrayObj = configdata.split("\n");
         for line in arrayObj:
-            lineArray=line.split(":");
-            if(lineArray[0]=="HousingID"):
-                HousingID=lineArray[1];
-            elif(lineArray[0]=="SerialNumber"):
-                SerialNumber=lineArray[1];
-            elif(lineArray[0]=="IP"):
-                IP=lineArray[1];
-            elif(lineArray[0]=="AutoInspexID"):
-                AutoInspexID=lineArray[1];
+            lineArray = line.split(":");
+            if(lineArray[0] == "HousingID"):
+                HousingID = lineArray[1];
+            elif(lineArray[0] == "SerialNumber"):
+                SerialNumber = lineArray[1];
+            elif(lineArray[0] == "IP"):
+                IP = lineArray[1];
+            elif(lineArray[0] == "AutoInspexID"):
+                AutoInspexID = lineArray[1];
                 print("AutoInspexID:"+AutoInspexID);
-            elif(lineArray[0]=="CameraPosition"):
-                CameraPosition=lineArray[1];
+            elif(lineArray[0] == "CameraPosition"):
+                CameraPosition = lineArray[1];
                 print("CameraPosition:"+CameraPosition);
-                    
-        if len(data["vinCode"])>0 and data["autoInspexID"]== AutoInspexID:
-            camera.stop_recording();
+
+        if len(data["vinCode"]) > 0 and data["autoInspexID"] == AutoInspexID:
+             try:
+                 camera.stop_recording();
+             except Exception as e:
+                  print(str(e))
+                  writeLog(str(e));
+
             camera.resolution = (1024, 786);
-            randomStr = ''.join(random.SystemRandom().choice(string.digits) for _ in range(10));
-            imageFileName=randomStr+"."+AutoInspexID+"."+data["vinCode"]+"."+CameraPosition+ '.jpg';
+
+            imageFileName=AutoInspexID+"."+data["vinCode"]+"."+CameraPosition+ '.jpg';
             camera.capture(imageFileName, use_video_port=True);
             print("Snapshot is taken for:"+ imageFileName);
             
-            folderName=data["serviceType"]+""+data["sellingMethod"]+""+data["vinCode"]+""+data["vehicleId"]+""+data["imageType"]+""+data["uuid"];
+            folderName=data["serviceType"]+"-"+data["sellingMethod"]+"-"+data["vinCode"]+"-"+data["vehicleId"]+"-"+data["imageType"]+"-"+str(uuid.uuid1()).replace("-","");
             url = upload_file(imageFileName,imageFileName,folderName);
             print("url:" + url);
     
@@ -140,15 +172,22 @@ def message_received(client, server, message):
             server.send_message(client,retJson);
             if os.path.exists(imageFileName):
                 os.remove(imageFileName)
-        
-            camera.resolution = (400, 300);
-            camera.start_recording(output, format='mjpeg');
+           try:
+               camera.resolution = (400, 300);
+               camera.framerate = 10;
+               camera.start_recording(output, format='mjpeg');
+            except Exception as e:
+                print(str(e))
+                writeLog(str(e));
         else:
             retData ={"vinCode": data["vinCode"] ,"vehicleId": data["vehicleId"] ,"autoInspexID": data["autoInspexID"] ,"uuid": data["uuid"], "sequenceNo":CameraPosition, "inspexIQConnectionId": data["inspexIQConnectionId"],"image_url":"","error":"AutoInspexID does not match with configuraiton"+AutoInspexID};
             retJson= json.dumps(retData);
             server.send_message(client,retJson);
             writeLog(retJson);
             print(retJson);
+    except PiCameraNotRecording as e:
+        print(str(e));
+        os.system("sudo reboot");
     except Exception as e:
         os.system("sudo pm2 restart all");
         print(str(e))
@@ -202,28 +241,34 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers();
 
 def startStreaming():
-    camera.resolution = (400, 300);
-    camera.start_recording(output, format='mjpeg');
-
     try:
+        camera.resolution = (400, 300);
+        camera.framerate = 10;
+        camera.start_recording(output, format='mjpeg');
         address = ('', 8000);
         httpserver = StreamingServer(address, StreamingHandler);
         httpserver.serve_forever();
+    except Exception as e:
+        os.system("sudo pm2 restart all");
+        print(str(e))
+        writeLog(str(e));
     finally:
         camera.stop_recording();
         
 statusData="";
 def SendPIStatus():
-    websocket.enableTrace(False)
-    global statusData;
-    if statusData=="":
-        statusData = readJsonData();
-    ws = websocket.create_connection("ws://echo.websocket.org/")
-    ws.send(statusData);
-    #result =  ws.recv();
-    #print("Received '%s'" % result);
-    ws.close();
-    os.system("sudo free -h && sudo sysctl -w vm.drop_caches=3 && sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -h");
+    try:
+        websocket.enableTrace(False)
+        global statusData;
+        if statusData=="":
+            statusData = readJsonData();
+        ws = websocket.create_connection("ws://192.168.0.11")
+        ws.send(statusData);
+        ws.close();
+        os.system("sudo free -h && sudo sysctl -w vm.drop_caches=3 && sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -h");
+    except Exception as e:
+        print(str(e))
+        writeLog(str(e));
 
 class perpetualTimer():
    def __init__(self,t,hFunction):
