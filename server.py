@@ -31,13 +31,13 @@ def setHostname(newhostname):
         data[5] = '127.0.1.1       ' + newhostname;
         with open('temp.txt', 'w') as file:
             file.writelines(data);
-         os.system('sudo mv temp.txt /etc/hosts')
+        os.system('sudo mv temp.txt /etc/hosts')
         with open('/etc/hostname', 'r') as file:
             data = file.readlines();
-         data[0] = newhostname;
+        data[0] = newhostname;
         with open('temp.txt', 'w') as file:
             file.writelines(data);
-         os.system('sudo mv temp.txt /etc/hostname');
+        os.system('sudo mv temp.txt /etc/hostname');
      except Exception as e:
          print(str(e))
          writeLog(str(e));
