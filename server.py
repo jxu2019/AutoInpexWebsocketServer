@@ -84,7 +84,7 @@ def readJsonData():
                 AutoInspexID = lineArray[1]
             elif(lineArray[0] == "CameraPosition"):
                 CameraPosition = lineArray[1]
-        retData = {"HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPostion": CameraPosition +
+        retData = {"HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
                    "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PIOSVersion": platform.platform(), "PIVersion": "PI 4", "OS_ID": "1"}
         print(retData)
         retJson = json.dumps(retData)
