@@ -63,45 +63,10 @@ def readData():
     data = data + ":" + platform.platform() + "\n"
     return data
 
-
-def readJsonData():
-    try:
-        file = open("/home/pi/AutoInspex_Config.txt", "r")
-        configdata = file.read()
-        file.close()
-        arrayObj = configdata.split("\n")
-        for line in arrayObj:
-            lineArray = line.split(":")
-            if(lineArray[0] == "HousingID"):
-                HousingID = lineArray[1]
-            elif(lineArray[0] == "SerialNumber"):
-                SerialNumber = lineArray[1]
-            elif(lineArray[0] == "LensID"):
-                LensID = lineArray[1]
-            elif(lineArray[0] == "SensorID"):
-                SensorID = lineArray[1]
-            elif(lineArray[0] == "AutoInspexID"):
-                AutoInspexID = lineArray[1]
-            elif(lineArray[0] == "CameraPosition"):
-                CameraPosition = lineArray[1]
-        retData = {"Status": "Active","HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
-                   "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PiOSVersion": platform.platform(), "PiVersion": "PI 4", "OS_ID": "1"}
-        print(retData)
-        retJson = json.dumps(retData)
-        writeLog(retJson)
-        return retJson
-    except Exception as e:
-        print(str(e))
-        writeLog(str(e))
-        return ""
-
-
 def new_client(client, server):
     writeLog("New client connected and was given id %d" % client['id'])
 
 # Called for every client disconnecting
-
-
 def client_left(client, server):
     writeLog("Client(%d) disconnected" % client['id'])
 
@@ -148,7 +113,8 @@ def message_received(client, server, message):
 
         if len(data["vinCode"]) > 0 and data["autoInspexID"] == AutoInspexID:
             try:
-                camera.stop_recording()
+                if camera.recording==True:
+                    camera.stop_recording()
             except Exception as e:
                 print(str(e))
                 writeLog(str(e))
@@ -189,15 +155,10 @@ def message_received(client, server, message):
             server.send_message(client, retJson)
             writeLog(retJson)
             print(retJson)
-    except PiCameraNotRecording as e:
-        print(str(e))
-        print("Rebooting....")
-        os.system("sudo reboot")
     except Exception as e:
         os.system("sudo pm2 restart all")
         print(str(e))
         writeLog(str(e))
-
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -264,19 +225,50 @@ def startStreaming():
         camera.stop_recording()
 
 
-statusData = ""
 
+def readJsonData():
+    try:
+        file = open("/home/pi/AutoInspex_Config.txt", "r")
+        configdata = file.read()
+        file.close()
+        arrayObj = configdata.split("\n")
+        for line in arrayObj:
+            lineArray = line.split(":")
+            if(lineArray[0] == "HousingID"):
+                HousingID = lineArray[1]
+            elif(lineArray[0] == "SerialNumber"):
+                SerialNumber = lineArray[1]
+            elif(lineArray[0] == "LensID"):
+                LensID = lineArray[1]
+            elif(lineArray[0] == "SensorID"):
+                SensorID = lineArray[1]
+            elif(lineArray[0] == "AutoInspexID"):
+                AutoInspexID = lineArray[1]
+            elif(lineArray[0] == "CameraPosition"):
+                CameraPosition = lineArray[1]
+        retData = {"Status": "Active","HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
+                   "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PiOSVersion": platform.platform(), "PiVersion": "PI 4", "OS_ID": "1"}
+        print(retData)
+        retJson = json.dumps(retData)
+        writeLog(retJson)
+        return retJson
+    except Exception as e:
+        print(str(e))
+        writeLog(str(e))
+        return ""
 
+prevoiusStatusData = "";
 def SendPIStatus():
     try:
-        websocket.enableTrace(False)
-        global statusData
-        if statusData == "":
-            statusData = readJsonData()
-        ws = websocket.create_connection("ws://192.168.0.11:6001")
-        ws.send(statusData)
-        ws.close()
-        os.system("sudo free -h && sudo sysctl -w vm.drop_caches=3 && sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -h")
+        global prevoiusStatusData;
+        statusData = readJsonData();
+        if prevoiusStatusData != statusData:
+            websocket.enableTrace(False);
+            prevoiusStatusData =statusData;
+            ws = websocket.create_connection("ws://192.168.0.11:6001");
+            ws.send(statusData);
+            ws.close();
+        os.system("sudo free -h && sudo sysctl -w vm.drop_caches=3 && sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -h");
     except Exception as e:
         print(str(e))
         writeLog(str(e))
