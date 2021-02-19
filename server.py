@@ -119,7 +119,7 @@ def message_received(client, server, message):
                 print(str(e))
                 writeLog(str(e))
 
-            camera.resolution = (1024, 786)
+            camera.resolution = (4056 , 3040);
 
             imageFileName = AutoInspexID+"." + \
                 data["vinCode"]+"."+CameraPosition + '.jpg'
