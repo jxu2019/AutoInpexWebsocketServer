@@ -255,27 +255,29 @@ def readJsonData():
                 AutoInspexID = lineArray[1]
             elif(lineArray[0] == "CameraPosition"):
                 CameraPosition = lineArray[1]
+            elif(lineArray[0] == "LocalSocketServerIP"):
+                LocalSocketServerIP = lineArray[1]
         retData = {"Status": "Active","HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
                    "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PiOSVersion": platform.platform(), "PiVersion": "PI 4", "OS_ID": "1"}
         print(retData);
         retJson = json.dumps(retData);
-        return retJson
+        return retJson,LocalSocketServerIP
     except Exception as e:
         print(str(e));
         writeLog(str(e));
-        return ""
+        return "",""
 
 prevoiusStatusData = "";
 def SendPIStatus():
     try:
         global prevoiusStatusData;
-        statusData = readJsonData();
-        if prevoiusStatusData != statusData:
+        statusData,LocalSocketServerIP = readJsonData();
+        if statusData!="" and LocalSocketServerIP!="" and prevoiusStatusData != statusData:
             print("prevoiusStatusData:"+prevoiusStatusData);
             print("statusData:"+statusData);
             websocket.enableTrace(False);
             prevoiusStatusData =statusData;
-            ws = websocket.create_connection("ws://192.168.0.11:6001");
+            ws = websocket.create_connection("ws://"+LocalSocketServerIP+":6001");
             ws.send(statusData);
             ws.close();
 

@@ -1,0 +1,7 @@
+SerialNumber:VIN134134134
+HousingID:123
+LensID:1
+SensorID:1
+CameraPosition:12
+AutoInspexID:90212-3-1-32-5
+LocalSocketServerIP:192.168.0.11
