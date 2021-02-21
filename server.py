@@ -14,7 +14,7 @@ import json
 import websocket
 from threading import Timer, Thread, Event
 import uuid
-
+import requests
 
 def writeLog(message):
     file = open("/home/pi/log.log", "a")
@@ -30,7 +30,7 @@ def check_internet():
         _ = requests.get(url, timeout=timeout)
         return True
     except requests.ConnectionError:
-        print("İnternet bağlantısı yok.")
+        print("No internet connection available.")
     return False
     
 def setHostname(newhostname):
