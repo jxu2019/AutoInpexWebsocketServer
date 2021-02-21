@@ -23,7 +23,16 @@ def writeLog(message):
     file.flush()
     file.close()
 
-
+def check_internet():
+    url='http://www.google.com/'
+    timeout=5
+    try:
+        _ = requests.get(url, timeout=timeout)
+        return True
+    except requests.ConnectionError:
+        print("İnternet bağlantısı yok.")
+    return False
+    
 def setHostname(newhostname):
     try:
         with open('/etc/hosts', 'r') as file:
@@ -248,13 +257,12 @@ def readJsonData():
                 CameraPosition = lineArray[1]
         retData = {"Status": "Active","HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
                    "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PiOSVersion": platform.platform(), "PiVersion": "PI 4", "OS_ID": "1"}
-        print(retData)
-        retJson = json.dumps(retData)
-        writeLog(retJson)
+        print(retData);
+        retJson = json.dumps(retData);
         return retJson
     except Exception as e:
-        print(str(e))
-        writeLog(str(e))
+        print(str(e));
+        writeLog(str(e));
         return ""
 
 prevoiusStatusData = "";
@@ -263,11 +271,19 @@ def SendPIStatus():
         global prevoiusStatusData;
         statusData = readJsonData();
         if prevoiusStatusData != statusData:
+            print("prevoiusStatusData:"+prevoiusStatusData);
+            print("statusData:"+statusData);
             websocket.enableTrace(False);
             prevoiusStatusData =statusData;
             ws = websocket.create_connection("ws://192.168.0.11:6001");
             ws.send(statusData);
             ws.close();
+
+        hasConnection= check_internet();
+        if hasConnection==False:
+            print("no internet connection. PI start to reboot");
+            writeLog("no internet connection. PI start to reboot");
+            os.sytem("sudo reboot");
         os.system("sudo free -h && sudo sysctl -w vm.drop_caches=3 && sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -h");
     except Exception as e:
         print(str(e))
@@ -297,9 +313,9 @@ if __name__ == "__main__":
     tStreaming = threading.Thread(target=startStreaming)
     hostname = ''.join(random.SystemRandom().choice(
         string.ascii_letters + string.digits) for _ in range(10))
-    writeLog("hostname: "+hostname)
 
     if hostname == "raspberrypi":
+        writeLog("hostname: "+hostname)
         writeLog('reset hostname to:'+hostname)
         setHostname(hostname)
     writeLog('starting websocket sever at port 5001...')

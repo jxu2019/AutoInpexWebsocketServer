@@ -55,3 +55,9 @@ disable_camera_led=1
 
 sudo rm -rf AutoInpexWebsocketServer
 git clone https://github.com/jxu2019/AutoInpexWebsocketServer.git
+
+
+
+sudo dhclient -v
+checking network connectin
+ifconfig wlan0
