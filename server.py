@@ -283,9 +283,9 @@ def SendPIStatus():
 
         hasConnection= check_internet();
         if hasConnection==False:
-            print("no internet connection. PI start to reboot");
+            print("no internet connection. PI start to reboot.");
             writeLog("no internet connection. PI start to reboot");
-            os.sytem("sudo reboot");
+            os.system("sudo reboot");
         os.system("sudo free -h && sudo sysctl -w vm.drop_caches=3 && sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && free -h");
     except Exception as e:
         print(str(e))
