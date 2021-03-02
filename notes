@@ -57,6 +57,7 @@ sudo rm -rf AutoInpexWebsocketServer
 git clone https://github.com/jxu2019/AutoInpexWebsocketServer.git
 
 
+sudo pip3 install PyQt5
 
 sudo dhclient -v
 checking network connectin
