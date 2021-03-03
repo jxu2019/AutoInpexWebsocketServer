@@ -145,9 +145,9 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
 
 def startStreaming():
     try:
-        camera.resolution = (400, 300)
+        camera.resolution = (800, 600)
         camera.framerate = 10
-        camera.start_recording(output, format='mjpeg');
+        #camera.start_recording(output, format='mjpeg');
         address = ('', 8000)
         httpserver = StreamingServer(address, StreamingHandler)
         httpserver.serve_forever()
@@ -157,9 +157,11 @@ def startStreaming():
         print(str(e))
         writeLog(str(e))
     finally:
-        camera.stop_recording()
-
-
+        try:
+            print("startStreaming: stop streaming");
+            camera.stop_recording()
+        except Exception as e:
+            print(str(e))
 
 def readJsonData():
     try:
@@ -192,13 +194,11 @@ def readJsonData():
         writeLog(str(e));
         return "",""
 
-prevoiusStatusData = "";
 def SendPIStatus():
     try:
         global prevoiusStatusData;
         statusData = readJsonData();
-        if statusData!="" and prevoiusStatusData != statusData:
-            print("prevoiusStatusData:"+prevoiusStatusData);
+        if statusData!="" :
             print("statusData:"+statusData);
             websocket.enableTrace(False);
             prevoiusStatusData =statusData;
@@ -302,7 +302,7 @@ def message_received(client, server, message):
         arrayObj = configdata.split("\n")
         if data["MessageType"] == "START_STREAMING":
             try:
-                camera.resolution = (400, 300);
+                camera.resolution = (800, 600);
                 camera.start_recording(output, format='mjpeg');
             except Exception as ex:
                 print(str(ex));
@@ -386,7 +386,7 @@ if __name__ == "__main__":
         writeLog('reset hostname to:'+hostname)
         setHostname(hostname)
     writeLog('starting websocket sever at port 5001...')
-    tSendStatus = perpetualTimer(60*2, SendPIStatus)
+    tSendStatus = perpetualTimer(60*5, SendPIStatus)
     PORT: int = 5001
     server = WebsocketServer(PORT)
     server.set_fn_new_client(new_client)
