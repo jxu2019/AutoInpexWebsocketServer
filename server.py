@@ -145,7 +145,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
 
 def startStreaming():
     try:
-        camera.resolution = (800, 600)
+        camera.resolution = (400, 300)
         camera.framerate = 10
         #camera.start_recording(output, format='mjpeg');
         address = ('', 8000)
@@ -302,7 +302,7 @@ def message_received(client, server, message):
         arrayObj = configdata.split("\n")
         if data["MessageType"] == "START_STREAMING":
             try:
-                camera.resolution = (800, 600);
+                camera.resolution = (400, 300);
                 camera.start_recording(output, format='mjpeg');
             except Exception as ex:
                 print(str(ex));
@@ -352,7 +352,7 @@ def message_received(client, server, message):
             url = upload_file(imageFileName, imageFileName, folderName)
             print("url:" + url)
 
-            retData = {"vinCode": data["vinCode"], "HousingID": data["HousingID"], "SerialNumber": data["SerialNumber"], "vehicleId": data["vehicleId"], "autoInspexID": data["autoInspexID"],
+            retData = {"vinCode": data["vinCode"], "HousingID": HousingID, "SerialNumber": data["SerialNumber"], "vehicleId": data["vehicleId"], "autoInspexID": data["autoInspexID"],
                        "uuid": data["uuid"], "sequenceNo": CameraPosition+"", "inspexIQConnectionId": data["inspexIQConnectionId"], "image_url": url}
             retJson = json.dumps(retData)
             writeLog(retJson)
@@ -363,14 +363,13 @@ def message_received(client, server, message):
                 os.remove(imageFileName)
           
         else:
-            retData = {"vinCode": data["vinCode"], "HousingID": data["HousingID"], "SerialNumber": data["SerialNumber"], "vehicleId": data["vehicleId"], "autoInspexID": data["autoInspexID"], "uuid": data["uuid"], "sequenceNo": CameraPosition,
+            retData = {"vinCode": data["vinCode"], "HousingID": HousingID, "SerialNumber": data["SerialNumber"], "vehicleId": data["vehicleId"], "autoInspexID": data["autoInspexID"], "uuid": data["uuid"], "sequenceNo": CameraPosition,
                        "inspexIQConnectionId": data["inspexIQConnectionId"], "image_url": "", "error": "AutoInspexID does not match with configuraiton"+AutoInspexID}
             retJson = json.dumps(retData)
             server.send_message(client, retJson)
             writeLog(retJson)
             print(retJson)
     except Exception as e:
-        os.system("sudo pm2 restart all")
         print(str(e))
         writeLog(str(e))
 
