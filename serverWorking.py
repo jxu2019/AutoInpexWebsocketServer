@@ -147,7 +147,7 @@ def startStreaming():
     try:
         camera.resolution = (400, 300)
         camera.framerate = 10
-        camera.start_recording(output, format='mjpeg');
+        camera.start_recording(output, format='mjpeg')
         address = ('', 8000)
         httpserver = StreamingServer(address, StreamingHandler)
         httpserver.serve_forever()
@@ -300,21 +300,6 @@ def message_received(client, server, message):
         configdata = file.read()
         file.close()
         arrayObj = configdata.split("\n")
-        if data["MessageType"] == "START_STREAMING":
-            try:
-                camera.resolution = (400, 300);
-                camera.start_recording(output, format='mjpeg');
-            except Exception as ex:
-                print(str(ex));
-                writeLog(str(ex));
-            return;
-        if data["MessageType"] == "STOP_STREAMING":
-            try:
-                camera.stop_recording();
-            except Exception as ex:
-                print(str(ex));
-                writeLog(str(ex));
-            return;   
         for line in arrayObj:
             lineArray = line.split(":")
             if(lineArray[0] == "HousingID"):
@@ -375,9 +360,8 @@ def message_received(client, server, message):
         writeLog(str(e))
 
 if __name__ == "__main__":
-    
     GetPI4ConfigData()
-    t1startStreaming = threading.Thread(target=startStreaming);
+    tStartStreaming = threading.Thread(target=startStreaming);
     hostname = ''.join(random.SystemRandom().choice(
         string.ascii_letters + string.digits) for _ in range(10))
 
@@ -394,5 +378,5 @@ if __name__ == "__main__":
     server.set_fn_message_received(message_received)
     writeLog("The server is started.")
     tSendStatus.start()
-    t1startStreaming.start()
+    tStartStreaming.start()
     server.run_forever()
