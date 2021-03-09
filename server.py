@@ -17,7 +17,8 @@ import uuid
 import requests
 
 def writeLog(message):
-    file = open("/home/pi/log.log", "a")
+    filename = '/home/pi/logs/AutoPix-logfile-%s.txt'%datetime.now().strftime('%Y-%m-%d')
+    file = open(filename, "a")
     now = datetime.now()
     file.write(str(now) + " " + message + "\n")
     file.flush()
@@ -169,6 +170,17 @@ def readJsonData():
         configdata = file.read()
         file.close()
         arrayObj = configdata.split("\n")
+        SDModel_ID=""
+        ShoeID="";
+        CaseID="";
+        FabDate="";
+        FabName="";
+        CameraPosition=""
+        AutoInspexID=""
+        SensorID=""
+        LensID=""
+        SerialNumber=""
+        HousingID="";
         for line in arrayObj:
             lineArray = line.split(":")
             if(lineArray[0] == "HousingID"):
@@ -183,9 +195,19 @@ def readJsonData():
                 AutoInspexID = lineArray[1]
             elif(lineArray[0] == "CameraPosition"):
                 CameraPosition = lineArray[1]
+            elif(lineArray[0] == "FabName"):
+                FabName = lineArray[1]
+            elif(lineArray[0] == "FabDate"):
+                FabDate = lineArray[1]
+            elif(lineArray[0] == "CaseID"):
+                CaseID = lineArray[1]
+            elif(lineArray[0] == "ShoeID"):
+                ShoeID = lineArray[1]
+            elif(lineArray[0] == "SDModel_ID"):
+                SDModel_ID = lineArray[1]
 
-        retData = {"Status": "Active","HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
-                   "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PiOSVersion": platform.platform(), "PiVersion": "PI 4", "OS_ID": "1"}
+        retData = {"MessageType": "STATUS_REPORT","Status": "Active","HousingID": HousingID, "SerialNumber": SerialNumber, "LensID": LensID, "SensorID": SensorID, "RingPosition": CameraPosition +
+                   "", "AutoInspexID": AutoInspexID, "IPAddress": get_ip_address(), "PiOSVersion": platform.platform(), "PiVersion": "PI 4", "OS_ID": "1","SDModel_ID":SDModel_ID,"ShoeID":ShoeID, "CaseID":CaseID, "FabName":FabName, "FabDate":FabDate}
         print(retData);
         retJson = json.dumps(retData);
         return retJson
@@ -342,7 +364,7 @@ def message_received(client, server, message):
             camera.resolution = (4056 , 3040);
 
             imageFileName = AutoInspexID+"." + \
-                data["vinCode"]+"."+CameraPosition + '.jpg'
+                data["vinCode"]+"."+CameraPosition + '.png'
             camera.capture(imageFileName, use_video_port=True)
             print("Snapshot is taken for:" + imageFileName)
 
@@ -359,8 +381,7 @@ def message_received(client, server, message):
 
             print(retJson)
             server.send_message(client, retJson)
-            if os.path.exists(imageFileName):
-                os.remove(imageFileName)
+           
           
         else:
             retData = {"vinCode": data["vinCode"], "HousingID": HousingID, "SerialNumber": data["SerialNumber"], "vehicleId": data["vehicleId"], "autoInspexID": data["autoInspexID"], "uuid": data["uuid"], "sequenceNo": CameraPosition,
@@ -385,7 +406,7 @@ if __name__ == "__main__":
         writeLog('reset hostname to:'+hostname)
         setHostname(hostname)
     writeLog('starting websocket sever at port 5001...')
-    tSendStatus = perpetualTimer(60*5, SendPIStatus)
+    tSendStatus = perpetualTimer(60*1, SendPIStatus)
     PORT: int = 5001
     server = WebsocketServer(PORT)
     server.set_fn_new_client(new_client)
